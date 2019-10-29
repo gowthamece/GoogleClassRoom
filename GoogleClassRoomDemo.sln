@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29409.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleClassRoomDemo", "GoogleClassRoomDemo\GoogleClassRoomDemo.csproj", "{145468E5-275D-41E0-8D99-C99C51AC4798}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{145468E5-275D-41E0-8D99-C99C51AC4798}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{145468E5-275D-41E0-8D99-C99C51AC4798}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{145468E5-275D-41E0-8D99-C99C51AC4798}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{145468E5-275D-41E0-8D99-C99C51AC4798}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7085D841-204E-497F-B881-6015B1F86798}
+	EndGlobalSection
+EndGlobal
