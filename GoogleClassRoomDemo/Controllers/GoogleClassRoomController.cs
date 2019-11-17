@@ -20,10 +20,10 @@ namespace GoogleClassRoomDemo.Controllers
     public class GoogleClassRoomController : Controller
     {
         private static readonly string ClientId =
-            "[Provide client ID]";
+            "[Give your client ID]";
 
         private static readonly string ClientSecret =
-            "[Provide client secret]";
+            "[Give your client secret key]";
 
         private static readonly string GoogleApplicationName =
           "GoogleClass";
@@ -84,6 +84,48 @@ namespace GoogleClassRoomDemo.Controllers
                 pageToken = response.NextPageToken;
             } while (pageToken != null);
             return courses;
+        }
+
+        public List<Student> GetStudents(string courseId)
+        {
+            var Token = GetAuthenticator();
+            var token = new TokenResponse()
+            {
+                AccessToken = Token,
+                ExpiresInSeconds = 3600,
+                IssuedUtc = DateTime.UtcNow
+            };
+
+            var authflow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecrets = new ClientSecrets
+                {
+                    ClientId = ClientId,
+                    ClientSecret = ClientSecret
+                }
+            });
+
+            var credential = new UserCredential(authflow, "0", token);
+            var serviceInitializer = new BaseClientService.Initializer()
+            {
+                ApplicationName = GoogleApplicationName,
+                HttpClientInitializer = credential
+            };
+
+            var googleService = new ClassroomService(serviceInitializer);
+
+            string pageToken = null;
+            var students = new List<Student>();
+            do
+            {
+                var request = googleService.Courses.Students.List(courseId);
+                request.PageSize = 100;
+                request.PageToken = pageToken;
+                var response = request.Execute();
+                students.AddRange(response.Students);
+                pageToken = response.NextPageToken;
+            } while (pageToken != null);
+            return students;
         }
         public static string GetAuthenticator()
             {

@@ -1,92 +1,142 @@
 ﻿
 @{
     ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<script src="https://code.jquery.com/jquery-3.4.1.min.js"
-        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-        crossorigin="anonymous"></script>
-
-<script src="https://apis.google.com/js/client:platform.js?onload=start" async defer></script>
-<button id="btnSignIn" class="btn-default" onclick="GoogleAuthenticationPage()">Sign in</button>
-<button class="btn-default" id="googleAuth">Get Course</button>
-<script type="text/javascript">
-    
-    function start() {
-        gapi.load('auth2', function () {
-            auth2 = gapi.auth2.init({
-                client_id: [Provide clienr Id]",
-                scope: 'https://www.googleapis.com/auth/classroom.courses.readonly',
-            });
-        });
-    }
-
-    function GoogleAuthenticationPage() {
-        auth2.grantOfflineAccess().then(signInCallback);
-    }
-    function IsSignedIn() {
-        
-         $.ajax({
-             url: "/GoogleClassRoom/IsSignedIn", success: function (result) {
-                 if (result) {
-                     $("#btnSignIn").hide();
-                 }
-                 else {
-                     $("#googleAuth").hide();
-                 }
-            }
-        })
-    }
-    function signInCallback(authResult) {      
-        var token = authResult['code'];
-        var access_token = '';
-        var refresh_token = '';
-        $.ajax({
-            url: 'https://www.googleapis.com/oauth2/v4/token',
-            type: "post",
-            datatype: "json",
-            contentType: "application/x-www-form-urlencoded; charset=utf-8",
-            async: true,
-            data: {
-
-                code: authResult['code'], client_id: "1070617910386-e614kn8nptnf7kpec2fmksoaa3t610gd.apps.googleusercontent.com", client_secret: "6IP3sBSvpra1dPG1en3U7Y4g", redirect_uri: 'https://localhost:44357', grant_type: 'authorization_code'
-            },
-            success: function (response) {
-                debugger;
-                access_token =  response.access_token;
-                refresh_token = response.refresh_token;
-                googleCallback(token, access_token, refresh_token);
-            }
-        })
-            .fail(function (err) {
-                alert("error" + err);
-                console.log("error" + err);
-            });
-    }
-
-    function googleCallback(authCode, accessToken, refreshToken) {        
-        if (authCode) {
-            $.ajax({
-                url: '/GoogleClassRoom/GoogleAuthorizationCallback',
-                type: "POST",                
-                contentType: 'application/json',
-                data: JSON.stringify({ Auth_Code: authCode, Access_token: accessToken, Refresh_token: refreshToken }),
-                success: function (res) {
-                    location.reload();
-                },
-                error: function (xhr) {
-                    alert("Error" + xhr.responseText);
-                }
-            });
-        } else {
-            alert('error');
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        html {
+            font-size: 14px;
+            font-family: Arial, Helvetica, sans-serif;
         }
-    }
+    </style>
+    <title></title>
+    <script src="https://kendo.cdn.telerik.com/2019.3.1023/js/jquery.min.js"></script>
+    <script src="https://apis.google.com/js/client:platform.js?onload=start" async defer></script>
 
-    $("#googleAuth").click(function (e) {
-        $.ajax({
-            url: "/GoogleClassRoom/GetCourse", success: function (result) {
+</head>
+<body>
+    <div id="example">
+
+        <button id="btnSignIn" class="btn-default" onclick="GoogleAuthenticationPage()">Sign in</button>
+        <button class="btn-default" id="googleAuth">Get Course</button>
+        <div id="grid"></div>
+        <br/>
+        <button type="button" id="btnSelectRow" value="GetValue" class="k-button">Get Student</button>
+        <br/>
+        <div id="StudentList"></div>
+        <script type="text/javascript">
+            function start() {
+                gapi.load('auth2', function () {
+                    auth2 = gapi.auth2.init({
+                        client_id: "[Give your client Id Key]",
+                        scope: 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.rosters',
+                    });
+                });
             }
-        })
-    })
-</script>
+            function GoogleAuthenticationPage() {
+                auth2.grantOfflineAccess().then(signInCallback);
+            }
+            function IsSignedIn() {
+
+                $.ajax({
+                    url: "/GoogleClassRoom/IsSignedIn", success: function (result) {
+                        if (result) {
+                            $("#btnSignIn").hide();
+                        }
+                        else {
+                            $("#googleAuth").hide();
+                        }
+                    }
+                })
+            }
+            function signInCallback(authResult) {
+                var token = authResult['code'];
+                var access_token = '';
+                var refresh_token = '';
+                $.ajax({
+                    url: 'https://www.googleapis.com/oauth2/v4/token',
+                    type: "post",
+                    datatype: "json",
+                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                    async: true,
+                    data: {
+
+                        code: authResult['code'], client_id: "1070617910386-e614kn8nptnf7kpec2fmksoaa3t610gd.apps.googleusercontent.com", client_secret: "6IP3sBSvpra1dPG1en3U7Y4g", redirect_uri: 'https://localhost:44357', grant_type: 'authorization_code'
+                    },
+                    success: function (response) {
+                        debugger;
+                        access_token = response.access_token;
+                        refresh_token = response.refresh_token;
+                        googleCallback(token, access_token, refresh_token);
+                    }
+                })
+                    .fail(function (err) {
+                        alert("error" + err);
+                        console.log("error" + err);
+                    });
+            }
+
+            function googleCallback(authCode, accessToken, refreshToken) {
+                if (authCode) {
+                    $.ajax({
+                        url: '/GoogleClassRoom/GoogleAuthorizationCallback',
+                        type: "POST",
+                        contentType: 'application/json',
+                        data: JSON.stringify({ Auth_Code: authCode, Access_token: accessToken, Refresh_token: refreshToken }),
+                        success: function (res) {
+                            location.reload();
+                        },
+                        error: function (xhr) {
+                            alert("Error" + xhr.responseText);
+                        }
+                    });
+                } else {
+                    alert('error');
+                }
+            }
+            $("#googleAuth").click(function (e) {
+                $("#grid").kendoGrid({
+                    dataSource: {
+                        type: "json",
+                        transport: {
+                            read: "/GoogleClassRoom/GetCourse"
+                        },
+                        pageSize: 20
+                    },
+                    selectable: "true",
+                
+                    toolbar: ["search"],
+                    columns: [{
+                        field: "name",
+                        title: "Name"
+                    },]
+                });
+            })
+            $("#btnSelectRow").click(function () {
+                 debugger;
+                var grid = $("#grid").data("kendoGrid");
+                var selectedItem = grid.dataItem(grid.select());
+               
+                   $("#StudentList").kendoGrid({
+                    dataSource: {
+                        type: "json",
+                        transport: {
+                            read: "/GoogleClassRoom/GetStudents?courseId="+ selectedItem.id
+                        },
+                        pageSize: 20
+                    },
+                    selectable: "true",                                   
+                    columns: [{
+                        field: "profile.name.fullName",
+                        title: "Name"
+                    },]
+                });
+            })
+        </script>
+    </div>
+</body>
+</html>
