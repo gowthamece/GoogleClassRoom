@@ -24,15 +24,21 @@
         <button id="btnSignIn" class="btn-default" onclick="GoogleAuthenticationPage()">Sign in</button>
         <button class="btn-default" id="googleAuth">Get Course</button>
         <div id="grid"></div>
-        <br/>
+        <div id="inviteWindow">
+            <input id="studentList" type="text" placeholder="Student Email1, Student Email2, ....." />
+            <button type="button" id="btnSendInvite" class="k-button">Send Invite</button>
+        </div>
+        <br />
         <button type="button" id="btnSelectRow" value="GetValue" class="k-button">Get Student</button>
-        <br/>
+        <button type="button" id="btnOpenSendInvite"  class="k-button">Send Invite</button>
+        <br />
         <div id="StudentList"></div>
         <script type="text/javascript">
+            $("#inviteWindow").hide();
             function start() {
                 gapi.load('auth2', function () {
                     auth2 = gapi.auth2.init({
-                        client_id: "[Give your client Id Key]",
+                         client_id: "[Give your client Id Key]",
                         scope: 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.rosters',
                     });
                 });
@@ -98,6 +104,39 @@
                     alert('error');
                 }
             }
+            $("#btnSendInvite").click(function () {              
+                var sendInviteList = [];
+                var studentList = $("#studentList").val().split(',');
+                for (var i = 0; i < studentList.length; i++) {
+                    var student = new Student()
+                    student.StudentID = i;
+                    student.EmailID = studentList[i]
+                    sendInviteList.push(student);
+                }
+                var grid = $("#grid").data("kendoGrid");
+                var selectedItem = grid.dataItem(grid.select());
+                sendInvite(sendInviteList, selectedItem.id);
+            });
+            function sendInvite(sentInviteList, ClassId) {
+                var param = {
+                    StudentList: sentInviteList,
+                    CourseId: ClassId,
+                    Role: "STUDENT",
+                }
+                $.ajax({
+                    url: "/GoogleClassRoom/SendInvite",
+                    data: JSON.stringify(param),
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    success: function (response) {
+                        $("#inviteWindow").data("kendoWindow").close();
+                    },
+                    error: function (xhr) {
+
+                    }
+                })
+
+            }
             $("#googleAuth").click(function (e) {
                 $("#grid").kendoGrid({
                     dataSource: {
@@ -108,7 +147,7 @@
                         pageSize: 20
                     },
                     selectable: "true",
-                
+
                     toolbar: ["search"],
                     columns: [{
                         field: "name",
@@ -116,26 +155,47 @@
                     },]
                 });
             })
-            $("#btnSelectRow").click(function () {
-                 debugger;
+            $("#btnSelectRow").click(function () {                
                 var grid = $("#grid").data("kendoGrid");
                 var selectedItem = grid.dataItem(grid.select());
-               
-                   $("#StudentList").kendoGrid({
+
+                $("#StudentList").kendoGrid({
                     dataSource: {
                         type: "json",
                         transport: {
-                            read: "/GoogleClassRoom/GetStudents?courseId="+ selectedItem.id
+                            read: "/GoogleClassRoom/GetStudents?courseId=" + selectedItem.id
                         },
                         pageSize: 20
                     },
-                    selectable: "true",                                   
+                    selectable: "true",
                     columns: [{
                         field: "profile.name.fullName",
                         title: "Name"
                     },]
                 });
             })
+            $("#btnOpenSendInvite").click(function () {
+                $("#inviteWindow").kendoWindow({
+                    width: "600px",
+                    title: "Send Invite",
+                    visible: false,
+                    actions: [
+                        "Pin",
+                        "Minimize",
+                        "Maximize",
+                        "Close"
+                    ],
+                    close: onClose
+                }).data("kendoWindow").center().open();
+            });
+             function onClose() {
+                       $("#inviteWindow").data("kendoWindow").close();
+            }
+            function Student() {
+                this.StudentID = 1;
+                this.EmailID = '';
+            }
+
         </script>
     </div>
 </body>

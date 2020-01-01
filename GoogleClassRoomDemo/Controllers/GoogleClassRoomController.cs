@@ -19,11 +19,9 @@ namespace GoogleClassRoomDemo.Controllers
 {
     public class GoogleClassRoomController : Controller
     {
-        private static readonly string ClientId =
-            "[Give your client ID]";
+        private static readonly string ClientId = "[Give your client ID]";
 
-        private static readonly string ClientSecret =
-            "[Give your client secret key]";
+        private static readonly string ClientSecret = "[Give your client secret key]";
 
         private static readonly string GoogleApplicationName =
           "GoogleClass";
@@ -43,6 +41,55 @@ namespace GoogleClassRoomDemo.Controllers
             {
                 return false;
             }
+        }
+        public ActionResult SendInvite([FromBody]GoogleInvite param)
+        {
+            var Token = GetAuthenticator();
+            var token = new TokenResponse()
+            {
+                AccessToken = Token,
+                ExpiresInSeconds = 3600,
+                IssuedUtc = DateTime.UtcNow
+            };
+
+            var authflow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecrets = new ClientSecrets
+                {
+                    ClientId = ClientId,
+                    ClientSecret = ClientSecret
+                }
+            });
+
+            var credential = new UserCredential(authflow, "0", token);
+            var serviceInitializer = new BaseClientService.Initializer()
+            {
+                ApplicationName = GoogleApplicationName,
+                HttpClientInitializer = credential
+            };
+
+            var googleClassService = new ClassroomService(serviceInitializer);
+            // string pageToken = null;
+
+            foreach (var student in param.StudentList)
+            {
+                Invitation invitation = new Invitation();
+                invitation.CourseId = param.CourseId;
+                invitation.Role = "STUDENT";
+                invitation.UserId = student.EmailID;
+                var request = googleClassService.Invitations.Create(invitation);
+                try
+                {
+                    var response = request.Execute();
+                }
+                catch (Exception ex)
+                {
+                    //TODO- Return the student List who are not invited
+                }
+            }
+
+            return Json("");
+
         }
         public  List<Course> GetCourse()
         {
@@ -86,7 +133,7 @@ namespace GoogleClassRoomDemo.Controllers
             return courses;
         }
 
-        public List<Student> GetStudents(string courseId)
+        public List<Google.Apis.Classroom.v1.Data.Student> GetStudents(string courseId)
         {
             var Token = GetAuthenticator();
             var token = new TokenResponse()
@@ -115,7 +162,7 @@ namespace GoogleClassRoomDemo.Controllers
             var googleService = new ClassroomService(serviceInitializer);
 
             string pageToken = null;
-            var students = new List<Student>();
+            var students = new List<Google.Apis.Classroom.v1.Data.Student>();
             do
             {
                 var request = googleService.Courses.Students.List(courseId);
