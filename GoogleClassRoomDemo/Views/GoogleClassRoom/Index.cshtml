@@ -30,16 +30,18 @@
         </div>
         <br />
         <button type="button" id="btnSelectRow" value="GetValue" class="k-button">Get Student</button>
-        <button type="button" id="btnOpenSendInvite"  class="k-button">Send Invite</button>
+        <button type="button" id="btnOpenSendInvite" class="k-button">Send Invite</button>
+        <button type="button" id="btnGetClasswork" class="k-button">Get Classwork</button>
         <br />
         <div id="StudentList"></div>
+        <div id="classWorkGrid"></div>
         <script type="text/javascript">
             $("#inviteWindow").hide();
             function start() {
                 gapi.load('auth2', function () {
                     auth2 = gapi.auth2.init({
-                         client_id: "[Give your client Id Key]",
-                        scope: 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.rosters',
+                        client_id: "[Provide client ID]",
+                        scope: 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.students',
                     });
                 });
             }
@@ -71,7 +73,7 @@
                     async: true,
                     data: {
 
-                        code: authResult['code'], client_id: "1070617910386-e614kn8nptnf7kpec2fmksoaa3t610gd.apps.googleusercontent.com", client_secret: "6IP3sBSvpra1dPG1en3U7Y4g", redirect_uri: 'https://localhost:44357', grant_type: 'authorization_code'
+                        code: authResult['code'], client_id: "[Provide client ID]", client_secret: "[Provide client secret]", redirect_uri: 'https://localhost:44357', grant_type: 'authorization_code'
                     },
                     success: function (response) {
                         debugger;
@@ -104,7 +106,7 @@
                     alert('error');
                 }
             }
-            $("#btnSendInvite").click(function () {              
+            $("#btnSendInvite").click(function () {
                 var sendInviteList = [];
                 var studentList = $("#studentList").val().split(',');
                 for (var i = 0; i < studentList.length; i++) {
@@ -117,6 +119,28 @@
                 var selectedItem = grid.dataItem(grid.select());
                 sendInvite(sendInviteList, selectedItem.id);
             });
+
+            $("#btnGetClasswork").click(function () {
+                 var grid = $("#grid").data("kendoGrid");
+                var selectedItem = grid.dataItem(grid.select());
+                $("#classWorkGrid").kendoGrid({
+                    dataSource: {
+                        type: "json",
+                        transport: {
+                            read: "/GoogleClassRoom/GetClassWork?courseId="+ selectedItem.id
+                        },
+                        pageSize: 20
+                    },
+                    selectable: "true",
+
+                    toolbar: ["search"],
+                    columns: [{
+                        field: "title",
+                        title: "Name"
+                    },]
+                });
+
+            })
             function sendInvite(sentInviteList, ClassId) {
                 var param = {
                     StudentList: sentInviteList,
@@ -155,7 +179,7 @@
                     },]
                 });
             })
-            $("#btnSelectRow").click(function () {                
+            $("#btnSelectRow").click(function () {
                 var grid = $("#grid").data("kendoGrid");
                 var selectedItem = grid.dataItem(grid.select());
 
@@ -188,8 +212,8 @@
                     close: onClose
                 }).data("kendoWindow").center().open();
             });
-             function onClose() {
-                       $("#inviteWindow").data("kendoWindow").close();
+            function onClose() {
+                $("#inviteWindow").data("kendoWindow").close();
             }
             function Student() {
                 this.StudentID = 1;

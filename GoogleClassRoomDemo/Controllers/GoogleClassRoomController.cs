@@ -19,9 +19,9 @@ namespace GoogleClassRoomDemo.Controllers
 {
     public class GoogleClassRoomController : Controller
     {
-        private static readonly string ClientId = "[Give your client ID]";
+        private static readonly string ClientId = "[Provide client ID]";
 
-        private static readonly string ClientSecret = "[Give your client secret key]";
+        private static readonly string ClientSecret = "[Provide client secret]";
 
         private static readonly string GoogleApplicationName =
           "GoogleClass";
@@ -174,6 +174,53 @@ namespace GoogleClassRoomDemo.Controllers
             } while (pageToken != null);
             return students;
         }
+
+      
+        public List<CourseWork>  GetClassWork(string courseId)
+        {
+            var Token = GetAuthenticator();
+            var token = new TokenResponse()
+            {
+                AccessToken = Token,
+                ExpiresInSeconds = 3600,
+                IssuedUtc = DateTime.UtcNow
+            };
+
+            var authflow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecrets = new ClientSecrets
+                {
+                    ClientId = ClientId,
+                    ClientSecret = ClientSecret
+                }
+            });
+
+            var credential = new UserCredential(authflow, "0", token);
+            var serviceInitializer = new BaseClientService.Initializer()
+            {
+                ApplicationName = GoogleApplicationName,
+                HttpClientInitializer = credential
+            };
+
+            var googleClassService = new ClassroomService(serviceInitializer);
+            string pageToken = null;
+            var classWorkList = new List<CourseWork>();
+            do
+            {
+                var request = googleClassService.Courses.CourseWork.List(courseId);
+                request.PageSize = 100;
+                request.PageToken = pageToken;
+                var response = request.Execute();
+                if (response.CourseWork != null)
+                {
+                    classWorkList.AddRange(response.CourseWork);
+                }
+                pageToken = response.NextPageToken;
+            } while (pageToken != null);
+            return classWorkList;
+        }
+
+
         public static string GetAuthenticator()
             {
             string refreshToken = GetRefershToken(1);
