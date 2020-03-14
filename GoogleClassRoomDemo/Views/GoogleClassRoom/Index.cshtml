@@ -32,16 +32,18 @@
         <button type="button" id="btnSelectRow" value="GetValue" class="k-button">Get Student</button>
         <button type="button" id="btnOpenSendInvite" class="k-button">Send Invite</button>
         <button type="button" id="btnGetClasswork" class="k-button">Get Classwork</button>
+        <button type="button" id="btnGetClassworkGrade" class="k-button">Get ClassworkGrade</button>
         <br />
         <div id="StudentList"></div>
         <div id="classWorkGrid"></div>
+        <div id="classWorkGradeGrid"></div>
         <script type="text/javascript">
             $("#inviteWindow").hide();
             function start() {
                 gapi.load('auth2', function () {
                     auth2 = gapi.auth2.init({
                         client_id: "[Provide client ID]",
-                        scope: 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.students',
+                        scope: 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.students https://www.googleapis.com/auth/classroom.coursework.me',
                     });
                 });
             }
@@ -121,13 +123,13 @@
             });
 
             $("#btnGetClasswork").click(function () {
-                 var grid = $("#grid").data("kendoGrid");
+                var grid = $("#grid").data("kendoGrid");
                 var selectedItem = grid.dataItem(grid.select());
                 $("#classWorkGrid").kendoGrid({
                     dataSource: {
                         type: "json",
                         transport: {
-                            read: "/GoogleClassRoom/GetClassWork?courseId="+ selectedItem.id
+                            read: "/GoogleClassRoom/GetClassWork?courseId=" + selectedItem.id
                         },
                         pageSize: 20
                     },
@@ -141,6 +143,35 @@
                 });
 
             })
+            $("#btnGetClassworkGrade").click(function () {
+                debugger;
+                var grid = $("#grid").data("kendoGrid");
+                var selectedItem = grid.dataItem(grid.select());
+                var grid = $("#classWorkGrid").data("kendoGrid");
+                var selectedClassWorkItem = grid.dataItem(grid.select());
+                $("#classWorkGradeGrid").kendoGrid({
+                    dataSource: {
+                        type: "json",
+                        transport: {
+                            read: "/GoogleClassRoom/GetClassWorkGrades?courseId=" + selectedItem.id  + '&' + "courseWorkId=" + selectedClassWorkItem.id
+                        },
+                        pageSize: 20
+                    },
+                    selectable: "true",
+
+                    toolbar: ["search"],
+                    columns: [{
+                        field: "userId",
+                        title: "User ID"
+                    },
+                        {
+                            field: "assignedGrade",
+                            title:"Grade"
+                        }]
+                });
+
+            })
+
             function sendInvite(sentInviteList, ClassId) {
                 var param = {
                     StudentList: sentInviteList,

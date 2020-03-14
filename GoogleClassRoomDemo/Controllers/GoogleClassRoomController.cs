@@ -19,7 +19,7 @@ namespace GoogleClassRoomDemo.Controllers
 {
     public class GoogleClassRoomController : Controller
     {
-        private static readonly string ClientId = "[Provide client ID]";
+        private static readonly string ClientId = " [Provide client ID]";
 
         private static readonly string ClientSecret = "[Provide client secret]";
 
@@ -219,7 +219,49 @@ namespace GoogleClassRoomDemo.Controllers
             } while (pageToken != null);
             return classWorkList;
         }
+        public List<StudentSubmission> GetClassWorkGrades(string courseId, string courseWorkId)
+        {
+            var Token = GetAuthenticator();
+            var token = new TokenResponse()
+            {
+                AccessToken = Token,
+                ExpiresInSeconds = 3600,
+                IssuedUtc = DateTime.UtcNow
+            };
 
+            var authflow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecrets = new ClientSecrets
+                {
+                    ClientId = ClientId,
+                    ClientSecret = ClientSecret
+                }
+            });
+
+            var credential = new UserCredential(authflow, "0", token);
+            var serviceInitializer = new BaseClientService.Initializer()
+            {
+                ApplicationName = GoogleApplicationName,
+                HttpClientInitializer = credential
+            };
+
+            var googleClassService = new ClassroomService(serviceInitializer);
+            string pageToken = null;
+            var classWorkGradeList = new List<StudentSubmission>();
+            do
+            {
+                var request = googleClassService.Courses.CourseWork.StudentSubmissions.List(courseId, courseWorkId);
+                request.PageSize = 100;
+                request.PageToken = pageToken;
+                var response = request.Execute();
+                if (response.StudentSubmissions != null)
+                {
+                    classWorkGradeList.AddRange(response.StudentSubmissions);
+                }
+                pageToken = response.NextPageToken;
+            } while (pageToken != null);
+            return classWorkGradeList;
+        }
 
         public static string GetAuthenticator()
             {
@@ -288,6 +330,9 @@ namespace GoogleClassRoomDemo.Controllers
             }
 
             return refreshToken;
-        }    
+        }
+
+     
+
     }
 }
